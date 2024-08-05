@@ -1,4 +1,4 @@
-import {object , string , number, TypeOf, boolean, z} from 'zod';
+import {object , string , TypeOf} from 'zod';
 
 export const createUser = object({
 

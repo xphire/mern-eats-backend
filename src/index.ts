@@ -3,12 +3,23 @@ import config from 'config'
 import app from './app'
 import dbConnect from './database/connect';
 import userRouter from './modules/users/user.route'
-import errorHandler from './middleware/errorHandler'
+import restaurantRouter from './modules/restaurants/restaurant.route'
+import ErrorHandler from './middleware/errorHandler'
+import {v2 as cloudinary} from 'cloudinary'
 import * as Sentry from "@sentry/node";
 
 
 
 const PORT = config.get("port") || 9500;
+
+
+cloudinary.config({
+
+    cloud_name : config.get("cloudinary_cloud_name"),
+    api_key : config.get("cloudinary_api_key"),
+    api_secret : config.get("cloudinary_api_secret")
+
+})
 
 
 //test route
@@ -21,6 +32,8 @@ app.get('/api/v1/ping', (_, res : Response) => {
 
 app.use('/api/v1/users',userRouter)
 
+app.use('/api/v1/restaurants',restaurantRouter)
+
 
 Sentry.setupExpressErrorHandler(app);
 
@@ -28,7 +41,7 @@ Sentry.setupExpressErrorHandler(app);
 //global error handler
 
 
-app.use(errorHandler)
+app.use(ErrorHandler)
 
 
 app.listen(PORT, async () => {

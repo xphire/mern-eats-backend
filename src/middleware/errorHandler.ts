@@ -1,5 +1,5 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
-import {Request, Response, NextFunction , Error} from 'express'
+import {Request, Response , Error, NextFunction} from 'express'
 import { ZodError } from 'zod'
 
 declare module 'express'{
@@ -14,7 +14,9 @@ declare module 'express'{
 }
 
 
-export default function (error : Error , _req : Request, res : Response, _next : NextFunction ) {
+//lesson here : Error handler MUST have 4 parameters
+
+export default function (error : Error , _req : Request, res : Response, next : NextFunction) {
 
 
     console.log({
@@ -36,11 +38,22 @@ export default function (error : Error , _req : Request, res : Response, _next :
     if (error instanceof ZodError ){
 
 
-         const msgs = error.issues.map((x) => x.message)
+         const errors = error.issues.map((x) => {
+
+            return {
+                  error : x.message,
+                  field : x.path
+            }
+         })
 
          res.statusCode = 400
 
-         return res.send(renderFailure(msgs))
+         return res.send({
+             "status" : "failed",
+             "errors" : errors
+         })
+
+         
 
     }
 
@@ -49,7 +62,7 @@ export default function (error : Error , _req : Request, res : Response, _next :
         
         res.statusCode = 400
 
-        return res.send(renderFailure(["user already exists"]))
+        return res.send(renderFailure(["entity already exists"]))
     }
 
      res.statusCode = 500

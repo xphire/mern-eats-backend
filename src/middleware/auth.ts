@@ -30,13 +30,35 @@ export const jwtCheck = auth({
     tokenSigningAlg: 'RS256'
 });
 
+//rewriting jwtcheck for proper error handling : did not work, request was stuck
+
+// export const jwtCheck = async (req : Request , res : Response , next : NextFunction) => {
+
+//       try { 
+
+//         auth({
+//                 audience: config.get("auth0_audience") || "",
+//                  issuerBaseURL: config.get("auth0_issuer_base_url") || "",
+//                  tokenSigningAlg: 'RS256'
+//         });
+
+//         next();
+        
+//       } catch (error) {
+         
+//         res.statusCode  = 401;
+//         next(error)
+//       }
+// }
+
+
 export const  jwtParse = async (req : Request , res : Response, next : NextFunction) => {
 
        const {authorization} = req.headers
 
        if (!authorization || !authorization.startsWith('Bearer')){
 
-          return res.sendStatus(401)
+           throw new Error("unauthorized")
        }
 
        const token = authorization.split(" ")[1]
@@ -62,9 +84,11 @@ export const  jwtParse = async (req : Request , res : Response, next : NextFunct
 
           next()
         
-       } catch (error) {
+       } catch(error) {
+          
+          next(error)
 
-          return res.sendStatus(401)
+          
 
        }
 

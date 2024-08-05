@@ -12,7 +12,7 @@ const prisma = new PrismaClient(
 )
 
 
-export async function createUser(req : Request<{},{},UserSchema.createUserSchema>, res : Response, next : NextFunction){
+export async function createUser(req : Request<object,object,UserSchema.createUserSchema>, res : Response, next : NextFunction){
 
       try {
 
@@ -47,7 +47,7 @@ export async function createUser(req : Request<{},{},UserSchema.createUserSchema
 
 }
 
-export async function updateUser(req : Request<{},{},UserSchema.updateUserSchema> , res : Response , next : NextFunction) {
+export async function updateUser(req : Request<object,object,UserSchema.updateUserSchema> , res : Response , next : NextFunction) {
 
      try {
 
