@@ -2,17 +2,31 @@ import { Request, Response, NextFunction, Express } from "express"
 import { PrismaClient } from "@prisma/client";
 import * as RestaurantSchema from './restaurant.schema'
 import * as Sentry from "@sentry/node";
-import cloudinary from 'cloudinary'
-import { Buffer } from "buffer";
-
-
-
+import { processSearchQuery, uploadImage } from "../../../utils";
 
 const prisma = new PrismaClient(
     {
         errorFormat : 'pretty'
     }
 )
+type pagination =  {
+    
+    total : number
+    page : number,
+    pages : number,
+    
+}
+
+
+type searchResult =   {
+
+     data : object[],
+     pagination : pagination
+}
+
+type response = searchResult
+
+
 
 export async function createRestaurant (req : Request<object,object, RestaurantSchema.createRestaurantSchema> , res : Response , next : NextFunction) {
     
@@ -34,15 +48,6 @@ export async function createRestaurant (req : Request<object,object, RestaurantS
             
            return res.status(409).send({status : "failed", error : "User already has a restaurant"})
        }
-
-
-    //    const image = req.file as Express.Multer.File
-
-    //    const base64Image  = Buffer.from(image.buffer).toString('base64')
-
-    //    const dataURI = `data:${image.mimetype};base64,${base64Image}`
-
-    //const uploadResponse = await cloudinary.v2.uploader.upload(dataURI)
 
        const imageUrl = await uploadImage(req.file as Express.Multer.File)
 
@@ -140,7 +145,10 @@ export async function updateRestaurant (req : Request<object, object , Restauran
                 data : {
 
                     ...body,
-                    imageUrl : imageUrl
+                    imageUrl : imageUrl,
+                    deliveryPrice : parseFloat(String(body.deliveryPrice)),
+                    estimatedDeliveryTime : parseFloat(String(body.estimatedDeliveryTime)),
+                    MenuItems : body.MenuItems.map((x) => {return {name : x.name, price : parseFloat(String(x.price))}}),
                 }
             })
 
@@ -149,14 +157,17 @@ export async function updateRestaurant (req : Request<object, object , Restauran
         }
         else{
 
-            const updatedRestaurant = await  prisma.restaurant.update({
+            const updatedRestaurant = await prisma.restaurant.update({
                      
                 where : {
                     userId : req.userId
                 },
                 data : {
 
-                    ...body
+                    ...body, 
+                    deliveryPrice : parseFloat(String(body.deliveryPrice)),
+                    estimatedDeliveryTime : parseFloat(String(body.estimatedDeliveryTime)),
+                    MenuItems : body.MenuItems.map((x) => {return {name : x.name, price : parseFloat(String(x.price))}}),
                 }
 
             })
@@ -178,18 +189,109 @@ export async function updateRestaurant (req : Request<object, object , Restauran
 }
 
 
-const uploadImage = async (file : Express.Multer.File) => {
+export async function searchRestaurant (req : Request<RestaurantSchema.searchRestaurantSchema,object,object> , res : Response<response> , next : NextFunction ){
+
+    try {
 
 
-      const image = file 
+        RestaurantSchema.searchRestaurant.parse(req.params)
 
-       const base64Image  = Buffer.from(image.buffer).toString('base64')
+        const {city} = req.params
 
-       const dataURI = `data:${image.mimetype};base64,${base64Image}`
+        const searchQuery = (req.query.searchQuery as string) || ""
 
-       const uploadResponse = await cloudinary.v2.uploader.upload(dataURI)
+        //const selectedCuisines = req.query.selectedCuisines as string || ""
 
-       return uploadResponse.url
+        const sortOption = req.query.sortOption as string || "updatedAt"
 
+        const page = parseInt(req.query.page as string) || 1
 
+        const pageSize = 50;
+
+        const skip = pageSize * (page - 1)
+
+        const cityCount = await prisma.restaurant.count({
+
+           where : {
+              city : {
+                equals : city,
+                mode : 'insensitive'
+              },
+           }
+        })
+
+       if (cityCount === 0){
+
+        const total = 0
+           
+        return res.status(404).send({data : [], pagination : {total, page : 1 , pages : 1}})
+       }
+
+       //if no search query
+
+       if(!searchQuery){
+
+         const restaurants = await prisma.restaurant.findMany({
+
+            where : {
+               city : {
+                 equals : city,
+                 mode : 'insensitive'
+               }
+            },
+            skip : skip,
+            take : pageSize,
+            orderBy : [
+                {
+                   [sortOption] : 'desc'  
+                }
+            ]
+            
+         })
+
+         const total = restaurants.length
+
+         if(total === 0) return res.status(404).send({data : [], pagination : {total, page : 1 , pages : 1}})
+
+         return res.status(200).send({data : restaurants,  pagination : {total, page , pages : Math.ceil(total/pageSize)}})
+
+       } 
+
+       //process searchquery
+
+       const processedQuery = processSearchQuery(searchQuery);
+       
+       const restaurants = await prisma.restaurant.findMany({
+
+           where : {
+              city : {
+                equals : city,
+                mode : 'insensitive'
+              },
+              cuisines : {
+                 hasSome : processedQuery
+              }
+           },
+           skip : skip,
+           take : pageSize,
+           orderBy : [
+              {
+                [sortOption] : 'desc'  
+              }
+           ]})
+
+         const total = restaurants.length
+
+         if(total === 0) return res.status(404).send({data : [], pagination : {total, page : 1 , pages : 1}})
+
+         return res.status(200).send({data : restaurants,  pagination : {total, page , pages : Math.ceil(total/pageSize)}});
+        
+    } catch (error) {
+
+        Sentry.captureException(error)
+        next(error)
+        
+    }
 }
+
+

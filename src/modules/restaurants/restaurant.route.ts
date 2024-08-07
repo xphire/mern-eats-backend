@@ -16,12 +16,20 @@ const upload = multer({
     }
 })
 
+
+//user restaurant routes
 router
 .route('/restaurant')
 .all(jwtCheck,jwtParse)
-.post( upload.single('imageFile'),RestaurantController.createRestaurant)
+.post(upload.single('imageFile'),RestaurantController.createRestaurant)
 .get(RestaurantController.getRestaurant)
-.put(RestaurantController.updateRestaurant)
+.put(upload.single('imageFile'),RestaurantController.updateRestaurant)
+
+
+//search restaurant routes
+
+router.get("/search/:city", RestaurantController.searchRestaurant)
+
 
 
 

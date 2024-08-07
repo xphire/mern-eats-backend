@@ -89,8 +89,6 @@ export async function updateUser(req : Request<object,object,UserSchema.updateUs
      }
 }
 
-
-
 export async function fetchUser(req : Request , res : Response , next : NextFunction) {
 
     try {

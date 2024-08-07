@@ -48,7 +48,18 @@ export const createRestaurant = object({
 }).strict()
 
 
+export const searchRestaurant =  object({
 
+    city : z.string().min(1)
+
+    
+}).strict()
+
+
+
+
+
+export type searchRestaurantSchema = TypeOf<typeof searchRestaurant>
 
 
 export type createRestaurantSchema = TypeOf<typeof createRestaurant>
