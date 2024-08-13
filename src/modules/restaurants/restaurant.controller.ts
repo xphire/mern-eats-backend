@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction, Express } from "express"
-import { PrismaClient } from "@prisma/client";
+import {  PrismaClient } from "@prisma/client";
 import * as RestaurantSchema from './restaurant.schema'
 import * as Sentry from "@sentry/node";
-import { processSearchQuery, uploadImage } from "../../../utils";
+import { queryProcessor, searchQueryBuilder, uploadImage } from "../../../utils";
 
 const prisma = new PrismaClient(
     {
@@ -17,7 +17,6 @@ type pagination =  {
     
 }
 
-
 type searchResult =   {
 
      data : object[],
@@ -28,7 +27,7 @@ type response = searchResult
 
 
 
-export async function createRestaurant (req : Request<object,object, RestaurantSchema.createRestaurantSchema> , res : Response , next : NextFunction) {
+export async function createRestaurant (req : Request<object,object,RestaurantSchema.createRestaurantSchema> , res : Response , next : NextFunction) {
     
 
     try {
@@ -189,24 +188,21 @@ export async function updateRestaurant (req : Request<object, object , Restauran
 }
 
 
-export async function searchRestaurant (req : Request<RestaurantSchema.searchRestaurantSchema,object,object> , res : Response<response> , next : NextFunction ){
+export async function searchRestaurant (req : Request<RestaurantSchema.searchRestaurantParamSchema,object,object,RestaurantSchema.searchRestaurantQuerySchema> , res : Response<response> , next : NextFunction ){
 
     try {
 
+        //console.log(req.query)
 
-        RestaurantSchema.searchRestaurant.parse(req.params)
+        RestaurantSchema.searchRestaurantSchema.parse(req)
 
         const {city} = req.params
 
-        const searchQuery = (req.query.searchQuery as string) || ""
-
-        //const selectedCuisines = req.query.selectedCuisines as string || ""
-
         const sortOption = req.query.sortOption as string || "updatedAt"
 
-        const page = parseInt(req.query.page as string) || 1
+        const page = parseInt(req.query.page as unknown as string) || 1
 
-        const pageSize = 50;
+        const pageSize = 5;
 
         const skip = pageSize * (page - 1)
 
@@ -227,60 +223,24 @@ export async function searchRestaurant (req : Request<RestaurantSchema.searchRes
         return res.status(404).send({data : [], pagination : {total, page : 1 , pages : 1}})
        }
 
-       //if no search query
+       const processedQuery = queryProcessor(req.query, city);
 
-       if(!searchQuery){
-
-         const restaurants = await prisma.restaurant.findMany({
-
-            where : {
-               city : {
-                 equals : city,
-                 mode : 'insensitive'
-               }
-            },
-            skip : skip,
-            take : pageSize,
-            orderBy : [
-                {
-                   [sortOption] : 'desc'  
-                }
-            ]
-            
-         })
-
-         const total = restaurants.length
-
-         if(total === 0) return res.status(404).send({data : [], pagination : {total, page : 1 , pages : 1}})
-
-         return res.status(200).send({data : restaurants,  pagination : {total, page , pages : Math.ceil(total/pageSize)}})
-
-       } 
-
-       //process searchquery
-
-       const processedQuery = processSearchQuery(searchQuery);
+       const query = searchQueryBuilder(processedQuery)
        
        const restaurants = await prisma.restaurant.findMany({
 
-           where : {
-              city : {
-                equals : city,
-                mode : 'insensitive'
-              },
-              cuisines : {
-                 hasSome : processedQuery
-              }
-           },
+           where : query,
            skip : skip,
            take : pageSize,
            orderBy : [
               {
-                [sortOption] : 'desc'  
+                [sortOption] : 'asc'  
               }
            ]})
 
-         const total = restaurants.length
+         const total = await prisma.restaurant.count({
+             where : query
+         })
 
          if(total === 0) return res.status(404).send({data : [], pagination : {total, page : 1 , pages : 1}})
 

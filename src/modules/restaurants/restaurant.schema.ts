@@ -48,18 +48,32 @@ export const createRestaurant = object({
 }).strict()
 
 
-export const searchRestaurant =  object({
+export const searchRestaurantSchema =  object({
 
-    city : z.string().min(1)
 
+    params : object({
+
+         city : z.string({
+            required_error : 'The city param is required'
+         }).min(1)
+    }).strict(),
+
+    query : object({
+
+        searchQuery : z.string(),
+        page : z.coerce.number().optional(),
+        selectedCuisines : z.string().optional(),
+        sortOption : z.enum(['name','updatedAt','deliveryPrice','estimatedDeliveryTime']).optional()
+
+    }).strict()
     
-}).strict()
+})
 
 
 
+export type searchRestaurantParamSchema = TypeOf<typeof searchRestaurantSchema>["params"]
 
-
-export type searchRestaurantSchema = TypeOf<typeof searchRestaurant>
+export type searchRestaurantQuerySchema = TypeOf<typeof searchRestaurantSchema>["query"]
 
 
 export type createRestaurantSchema = TypeOf<typeof createRestaurant>
