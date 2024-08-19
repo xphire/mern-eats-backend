@@ -4,7 +4,9 @@ import {Express} from 'express';
 import { Buffer } from "buffer";
 
 import cloudinary from 'cloudinary'
-import { Prisma } from '@prisma/client';
+import { MenuItem, Prisma } from '@prisma/client';
+import {  CheckOutSessionRequestSchema } from './src/modules/orders/orders.schema';
+import Stripe from 'stripe';
 
 
 type searchReformed = {
@@ -219,25 +221,6 @@ export function searchQueryBuilder(builder: ProcessedQuery) : Prisma.RestaurantW
 
 }
 
-
-/*
-
-             {
-                        name : {
-                            in : builder.cuisines,
-                            mode : 'insensitive'
-                        }
-                    },
-                   {
-                        name : {
-                            contains : builder.name,
-                            mode : 'insensitive'
-                        }
-             } 
-                        
-                    
-*/
-
 export async function uploadImage(file : Express.Multer.File) : Promise<string>{
 
 
@@ -252,4 +235,74 @@ export async function uploadImage(file : Express.Multer.File) : Promise<string>{
          return uploadResponse.url
   
   
+}
+
+
+export function createLineItems(request : CheckOutSessionRequestSchema, menuItems : MenuItem[]){
+
+
+    const lineItems = request.cartItems.map((cartItem) => {
+
+          const menuItem = menuItems.find(item => item.name === cartItem.name)
+
+          if(!menuItem){
+             throw new Error(`Menu item not found: ${cartItem.name} `)
+          }
+
+          const line_item : Stripe.Checkout.SessionCreateParams.LineItem = {
+
+               price_data : {
+                   currency : "usd",
+                   unit_amount : menuItem.price,
+                   product_data : {
+                     name : menuItem.name
+                   }
+               },
+               quantity : cartItem.quantity
+          };
+
+
+          return line_item
+
+    })
+
+    return lineItems
+
+
+
+}
+
+
+export async function createStripeSession(STRIPE : Stripe,FRONTEND_URL : string,lineItems : Stripe.Checkout.SessionCreateParams.LineItem[], orderId : string, deliveryPrice : number , restaurantId : string){
+
+
+    const sessionData = await STRIPE.checkout.sessions.create({
+         line_items : lineItems,
+         shipping_options : [
+            {
+                shipping_rate_data : {
+                    display_name : "Delivery",
+                    type : "fixed_amount",
+                    fixed_amount  : {
+                        amount: deliveryPrice,
+                        currency : "usd"
+                    }
+                }
+            }
+         ],
+         mode : "payment",
+         metadata : {
+            orderId,
+            restaurantId
+         },
+         success_url : `${FRONTEND_URL}/order-status?success=true`,
+         cancel_url : `${FRONTEND_URL}/restaurants/${restaurantId}?cancelled=true`
+    })
+
+
+    return sessionData;
+
+
+
+
 }

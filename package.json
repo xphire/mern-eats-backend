@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "./src/index.ts",
   "scripts": {
-    "dev": "ts-node-dev  --respawn --transpile-only --import ./instrument.mjs ./src/index.ts",
+    "dev": "concurrently \"yarn dev-spin\" \"yarn stripe\"",
+    "stripe": "stripe listen --forward-to localhost:7000/stripe/api/checkout/webhook",
+    "dev-spin" : "ts-node-dev  --respawn --transpile-only --import ./instrument.mjs ./src/index.ts",
     "build": "yarn install && tsc",
     "start": "export NODE_ENV=production && node dist/index.js"
   },
@@ -13,6 +15,7 @@
     "@sentry/node": "^8.18.0",
     "@sentry/profiling-node": "^8.18.0",
     "cloudinary": "^2.3.1",
+    "concurrently": "^8.2.2",
     "config": "^3.3.12",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -20,8 +23,8 @@
     "express-oauth2-jwt-bearer": "^1.6.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.5.1",
     "multer": "^1.4.5-lts.1",
+    "stripe": "^16.7.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

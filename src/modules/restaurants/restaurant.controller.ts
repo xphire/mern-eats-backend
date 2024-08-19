@@ -27,7 +27,7 @@ type response = searchResult
 
 
 
-export async function createRestaurant (req : Request<object,object,RestaurantSchema.createRestaurantSchema> , res : Response , next : NextFunction) {
+export async function createRestaurant (req : Request<object,object,RestaurantSchema.CreateRestaurantSchema> , res : Response , next : NextFunction) {
     
 
     try {
@@ -78,7 +78,7 @@ export async function createRestaurant (req : Request<object,object,RestaurantSc
 
 }
 
-export async function getRestaurant(req : Request , res : Response , next : NextFunction){
+export async function getUserRestaurant(req : Request , res : Response , next : NextFunction){
 
 
     try {
@@ -110,7 +110,7 @@ export async function getRestaurant(req : Request , res : Response , next : Next
 }
 
 
-export async function updateRestaurant (req : Request<object, object , RestaurantSchema.createRestaurantSchema> , res : Response , next : NextFunction){
+export async function updateRestaurant (req : Request<object, object , RestaurantSchema.CreateRestaurantSchema> , res : Response , next : NextFunction){
 
     try {
 
@@ -188,7 +188,7 @@ export async function updateRestaurant (req : Request<object, object , Restauran
 }
 
 
-export async function searchRestaurant (req : Request<RestaurantSchema.searchRestaurantParamSchema,object,object,RestaurantSchema.searchRestaurantQuerySchema> , res : Response<response> , next : NextFunction ){
+export async function searchRestaurant (req : Request<RestaurantSchema.SearchRestaurantParamSchema,object,object,RestaurantSchema.SearchRestaurantQuerySchema> , res : Response<response> , next : NextFunction ){
 
     try {
 
@@ -252,6 +252,35 @@ export async function searchRestaurant (req : Request<RestaurantSchema.searchRes
         next(error)
         
     }
+}
+
+
+export async function getRestaurantById (req : Request<RestaurantSchema.GetRestaurantSchema,object,object> , res : Response , next : NextFunction){
+
+     try {
+          
+        RestaurantSchema.getRestaurantSchema.parse(req.params)
+
+        const {id} = req.params
+
+        const restaurant = await prisma.restaurant.findFirst({
+
+            where:{
+                id : id
+            }
+        })
+
+        if(!restaurant) return res.status(404).send({message : "Restaurant not found"})
+
+        res.status(200).send(restaurant)
+        
+     } catch (error) {
+
+
+        Sentry.captureException(error)
+        next(error)
+        
+     }
 }
 
 

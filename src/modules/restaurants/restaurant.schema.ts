@@ -70,10 +70,20 @@ export const searchRestaurantSchema =  object({
 })
 
 
+export const getRestaurantSchema = object({
+      
+    id : z.string().min(24,"invalid Restaurant ID")
+})
 
-export type searchRestaurantParamSchema = TypeOf<typeof searchRestaurantSchema>["params"]
-
-export type searchRestaurantQuerySchema = TypeOf<typeof searchRestaurantSchema>["query"]
 
 
-export type createRestaurantSchema = TypeOf<typeof createRestaurant>
+
+
+export type SearchRestaurantParamSchema = TypeOf<typeof searchRestaurantSchema>["params"]
+
+export type SearchRestaurantQuerySchema = TypeOf<typeof searchRestaurantSchema>["query"]
+
+
+export type CreateRestaurantSchema = TypeOf<typeof createRestaurant>
+
+export type GetRestaurantSchema = TypeOf<typeof getRestaurantSchema>

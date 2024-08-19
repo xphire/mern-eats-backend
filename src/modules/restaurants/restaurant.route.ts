@@ -22,13 +22,17 @@ router
 .route('/restaurant')
 .all(jwtCheck,jwtParse)
 .post(upload.single('imageFile'),RestaurantController.createRestaurant)
-.get(RestaurantController.getRestaurant)
+.get(RestaurantController.getUserRestaurant)
 .put(upload.single('imageFile'),RestaurantController.updateRestaurant)
 
 
-//search restaurant routes
+//search restaurant route
 
 router.get("/search/:city", RestaurantController.searchRestaurant)
+
+//get restaurant by restaurant ID
+
+router.get("/restaurant/:id",RestaurantController.getRestaurantById)
 
 
 

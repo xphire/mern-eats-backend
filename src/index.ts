@@ -4,6 +4,7 @@ import app from './app'
 import dbConnect from './database/connect';
 import userRouter from './modules/users/user.route'
 import restaurantRouter from './modules/restaurants/restaurant.route'
+import orderRouter from './modules/orders/order.route'
 import ErrorHandler from './middleware/errorHandler'
 import {v2 as cloudinary} from 'cloudinary'
 import * as Sentry from "@sentry/node";
@@ -33,6 +34,8 @@ app.get('/api/v1/ping', (_, res : Response) => {
 app.use('/api/v1/users',userRouter)
 
 app.use('/api/v1/restaurants',restaurantRouter)
+
+app.use('/api/v1/orders',orderRouter)
 
 
 Sentry.setupExpressErrorHandler(app);

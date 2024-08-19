@@ -1,15 +1,15 @@
-import * as process from 'process';
-import mongoose from "mongoose";
-import config from "config";
+import process from "process";
+import { PrismaClient } from "@prisma/client";
 
 
 async function dbConnect(){
 
-    const uri : string = config.get("mongoUri")
 
     try {
 
-        await mongoose.connect(uri);
+        const prisma = new PrismaClient()
+
+        await prisma.$connect()
 
         console.log("Successfully Connected to DB");
         

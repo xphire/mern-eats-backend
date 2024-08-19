@@ -42,14 +42,46 @@ model Restaurant {
   imageUrl                String
   MenuItems               MenuItem[]
   userId                  String @db.ObjectId @unique
-  
+}
 
+
+model Order {
+  id                      String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  restaurantId            String @db.ObjectId
+  userId                  String @db.ObjectId
+  deliveryDetails         DeliveryDetails
+  cartItems               CartItem[]
+  totalAmount             Float
+  status                  Status
 }
 
 
 type MenuItem {
   name  String
   price Float
+}
+
+
+type DeliveryDetails {
+  email         String
+  name          String
+  addressLine1  String
+  city          String
+}
+
+type CartItem {
+  quantity Int
+  name     String
+}
+
+enum Status {
+  placed
+  paid
+  inProgress
+  outForDelivery
+  delivered
 }
 
 

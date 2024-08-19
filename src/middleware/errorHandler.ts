@@ -1,4 +1,5 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
+import Stripe from 'stripe'
 import {Request, Response , Error, NextFunction} from 'express'
 import { ZodError } from 'zod'
 
@@ -65,12 +66,23 @@ export default function (error : Error , _req : Request, res : Response, next : 
         return res.send(renderFailure(["entity already exists"]))
     }
 
+
+    if (error instanceof Stripe.errors.StripeError){
+
+        res.statusCode = Number(error.code) || 500
+
+        return res.send(renderFailure([error.message]))
+    }
+
      res.statusCode = 500
 
      return res.send(renderFailure(["something went wrong"]))
 
 
 } 
+
+
+
 
 
 function renderFailure(errors : string[]){
