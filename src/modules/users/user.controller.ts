@@ -99,6 +99,9 @@ export async function fetchUser(req : Request , res : Response , next : NextFunc
             where : {
 
                 id : req.userId
+            },
+            include : {
+                orders : false
             }
         })
 

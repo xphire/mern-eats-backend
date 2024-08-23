@@ -101,8 +101,6 @@ export const stripeWebhookHandler = async (req : Request, res : Response, next: 
                 if(!order){
                     return res.status(404).json({message : "Order not found"})
                 }
-
-                res.status(200).send()
     
                 order.totalAmount = event.data.object.amount_total as number
                 order.status = "paid"
@@ -118,7 +116,7 @@ export const stripeWebhookHandler = async (req : Request, res : Response, next: 
                     }
                 })
 
-                return;
+                return res.status(200).send();
     
                
             }
@@ -141,3 +139,31 @@ export const stripeWebhookHandler = async (req : Request, res : Response, next: 
 
        
 }
+
+export const getUserOrders = async (req : Request, res : Response , next : NextFunction) => {
+
+    try {
+
+        const orders = await prisma.order.findMany({
+
+            where : {
+                userId : req.userId
+            },
+            include : {
+                restaurant : true,
+                user : true
+            },
+            orderBy : {
+                createdAt : 'desc'
+            }
+        })
+
+        res.status(200).send(orders)
+        
+    } catch (error) {
+
+        Sentry.captureException(error)
+        next(error)
+        
+    }
+} 

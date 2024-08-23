@@ -267,6 +267,9 @@ export async function getRestaurantById (req : Request<RestaurantSchema.GetResta
 
             where:{
                 id : id
+            },
+            include : {
+                orders : false
             }
         })
 
@@ -283,4 +286,82 @@ export async function getRestaurantById (req : Request<RestaurantSchema.GetResta
      }
 }
 
+export async function getRestaurantOrders (req : Request , res : Response , next : NextFunction){
 
+    try {
+
+        const  restaurant = await prisma.restaurant.findFirst({
+
+            where : {
+                userId : req.userId
+            }
+            
+        })
+
+        if (!restaurant) return res.status(404).send({status: "failed", message: "Restaurant not found"})
+
+        // console.log("restaurant ID",restaurant.id)
+
+        // console.log("User ID",req.userId)
+
+        
+        const orders = await prisma.order.findMany({
+            where : {
+                restaurantId : restaurant.id
+            }
+        })
+
+        
+        return res.status(200).send(orders)
+
+        
+    } catch (error) {
+
+        Sentry.captureException(error)
+        next(error)
+        
+    }
+}
+
+export async function updateOrderStatus(req: Request, res : Response , next : NextFunction){
+
+    try {
+
+        const {orderId} = req.params
+        const {status} = req.body
+
+        const order = await prisma.order.findFirst({
+            where : {
+                id : orderId
+            }
+        })
+
+        if (!order) return res.status(404).send({status: "failed", message: "order not found"})
+
+        const restaurant = await prisma.restaurant.findFirst({
+            where : {
+                id : order.restaurantId
+            }
+        })
+
+        if(restaurant?.userId !== req.userId) return res.status(403).send({status: "failed", message: "unauthorized"})
+
+        const updatedOrder = await prisma.order.update({
+
+            data : {
+                status : status
+            },
+            where : {
+                id : orderId
+            }
+        })
+
+        return res.status(200).send(updatedOrder)
+        
+    } catch (error) {
+
+        Sentry.captureException(error)
+        next(error)
+        
+    }
+}

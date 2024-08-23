@@ -25,6 +25,8 @@ router
 .get(RestaurantController.getUserRestaurant)
 .put(upload.single('imageFile'),RestaurantController.updateRestaurant)
 
+//get restaurant orders
+router.get("/restaurant/orders",jwtCheck,jwtParse,RestaurantController.getRestaurantOrders)
 
 //search restaurant route
 
@@ -34,6 +36,10 @@ router.get("/search/:city", RestaurantController.searchRestaurant)
 
 router.get("/restaurant/:id",RestaurantController.getRestaurantById)
 
+//update order status
+
+
+router.patch("/restaurant/order/:orderId/status",jwtCheck,jwtParse,RestaurantController.updateOrderStatus)
 
 
 
