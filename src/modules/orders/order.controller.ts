@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express"
 import {  MenuItem, PrismaClient } from "@prisma/client";
-import { createLineItems, createStripeSession } from "../../../utils";
+import { createLineItems, createStripeSession } from "../../utils";
 import { searchResult } from "../restaurants/restaurant.controller";
 import * as  OrderSchema from "./orders.schema"
 import * as Sentry from "@sentry/node";

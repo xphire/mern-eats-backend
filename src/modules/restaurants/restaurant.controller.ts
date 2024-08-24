@@ -2,7 +2,7 @@ import { Request, Response, NextFunction, Express } from "express"
 import {  PrismaClient } from "@prisma/client";
 import * as RestaurantSchema from './restaurant.schema'
 import * as Sentry from "@sentry/node";
-import { queryProcessor, searchQueryBuilder, uploadImage } from "../../../utils";
+import { queryProcessor, searchQueryBuilder, uploadImage } from "../../utils";
 
 const prisma = new PrismaClient(
     {

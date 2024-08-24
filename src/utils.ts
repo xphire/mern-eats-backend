@@ -5,7 +5,7 @@ import { Buffer } from "buffer";
 
 import cloudinary from 'cloudinary'
 import { MenuItem, Prisma } from '@prisma/client';
-import {  CheckOutSessionRequestSchema } from './src/modules/orders/orders.schema';
+import {  CheckOutSessionRequestSchema } from './modules/orders/orders.schema';
 import Stripe from 'stripe';
 
 
