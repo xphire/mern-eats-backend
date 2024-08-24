@@ -6,7 +6,7 @@
     "dev": "concurrently \"yarn dev-spin\" \"yarn stripe\"",
     "stripe": "stripe listen --forward-to localhost:7000/stripe/api/checkout/webhook",
     "dev-spin" : "ts-node-dev  --respawn --transpile-only --import ./instrument.mjs ./src/index.ts",
-    "start": "export NODE_ENV=production && node dist/index.js",
+    "start": "export NODE_ENV=production && node --import ./instrument.mjs dist/index.js",
     "prisma": "npx prisma generate && npx prisma db push",
     "build" : "yarn install && tsc && yarn prisma",
     "prod-start" :   "concurrently \"yarn start\" \"yarn stripe\""
