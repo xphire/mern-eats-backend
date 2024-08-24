@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express"
 import {  MenuItem, PrismaClient } from "@prisma/client";
 import { createLineItems, createStripeSession } from "../../../utils";
+import { searchResult } from "../restaurants/restaurant.controller";
 import * as  OrderSchema from "./orders.schema"
 import * as Sentry from "@sentry/node";
 import Stripe from "stripe";
@@ -140,9 +141,16 @@ export const stripeWebhookHandler = async (req : Request, res : Response, next: 
        
 }
 
-export const getUserOrders = async (req : Request, res : Response , next : NextFunction) => {
+export const getUserOrders = async (req : Request, res : Response<searchResult> , next : NextFunction) => {
 
     try {
+
+
+        const page = parseInt(req.query.page as unknown as string)|| 1
+
+        const pageSize = 5
+
+        const skip = pageSize * (page - 1)
 
         const orders = await prisma.order.findMany({
 
@@ -153,12 +161,22 @@ export const getUserOrders = async (req : Request, res : Response , next : NextF
                 restaurant : true,
                 user : true
             },
+            skip : skip,
+            take : pageSize,
             orderBy : {
                 createdAt : 'desc'
             }
         })
 
-        res.status(200).send(orders)
+        const total = await prisma.order.count({
+
+            where : {
+                userId : req.userId
+            }
+
+        })
+
+        res.status(200).send({data : orders, pagination : {total,page,pages: Math.ceil(total/pageSize)}})
         
     } catch (error) {
 

@@ -9,7 +9,7 @@ const prisma = new PrismaClient(
         errorFormat : 'pretty'
     }
 )
-type pagination =  {
+export type pagination =  {
     
     total : number
     page : number,
@@ -17,7 +17,7 @@ type pagination =  {
     
 }
 
-type searchResult =   {
+export type searchResult =   {
 
      data : object[],
      pagination : pagination
