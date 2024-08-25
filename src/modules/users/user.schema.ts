@@ -44,7 +44,7 @@ export const updateUser =  object({
         required_error : "The addressLine1 field is required",
     }).optional(),
 
-}).strict()
+})
 
 export type createUserSchema = TypeOf<typeof createUser>
 
