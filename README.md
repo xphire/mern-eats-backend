@@ -6,5 +6,5 @@
 - File Upload functionality with Multer
 - Cloudinary for image storage on the cloud
 - Payment Collection with Stripe
-- Webhook for Stripe communication with backend server 
+- Webhook for Stripe communication with the backend server 
 - Deployment on Render free tier
